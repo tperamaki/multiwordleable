@@ -94,7 +94,7 @@ const Game = ({ gameId }: { gameId: string }) => {
                         key={index + "_" + letterIndex}
                         className={
                           "w-8 h-8 border border-black dark:border-white rounded flex items-center justify-center" +
-                          (word.includes(letter)
+                          (String(word).includes(letter)
                             ? word[letterIndex] === guesses[index][letterIndex]
                               ? " text-green-500"
                               : " text-yellow-500"
