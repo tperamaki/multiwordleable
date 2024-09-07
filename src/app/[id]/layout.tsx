@@ -12,6 +12,7 @@ const GameLayout = ({
 }>) => {
   const client = new Ably.Realtime({
     authUrl: `${process.env.NEXT_PUBLIC_HOSTNAME}/api/createTokenRequest`,
+    authMethod: "POST",
   });
 
   return (
