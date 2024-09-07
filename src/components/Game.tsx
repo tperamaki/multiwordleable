@@ -57,6 +57,7 @@ const Game = ({ gameId }: { gameId: string }) => {
       <h1 className="text-4xl font-bold">Multiwordleable</h1>
       {word !== undefined ? (
         <>
+          {word}
           <form onSubmit={handleGuess} className="flex gap-2">
             <input
               type="text"
@@ -94,11 +95,20 @@ const Game = ({ gameId }: { gameId: string }) => {
                         key={index + "_" + letterIndex}
                         className={
                           "w-8 h-8 border border-black dark:border-white rounded flex items-center justify-center" +
-                          (String(word).includes(letter)
-                            ? word[letterIndex] === guesses[index][letterIndex]
-                              ? " text-green-500"
-                              : " text-yellow-500"
-                            : "")
+                          (word[letterIndex] === letter
+                            ? " text-green-500"
+                            : String(word)
+                                  .split("")
+                                  .filter(
+                                    (filterLetter, filterLetterIndex) =>
+                                      filterLetter !==
+                                      (guesses[index] ?? "     ")[
+                                        filterLetterIndex
+                                      ]
+                                  )
+                                  .includes(letter)
+                              ? " text-yellow-500"
+                              : "")
                         }
                       >
                         {letter}
