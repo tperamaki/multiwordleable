@@ -64,6 +64,7 @@ const Game = ({ gameId }: { gameId: string }) => {
               onChange={(e) => setGuess(e.target.value.toUpperCase())}
               maxLength={5}
               className="w-32 h-8 text-center border-2 rounded dark:text-gray-800"
+              pattern="[A-Z]{5}"
             />
             <button
               type="submit"
