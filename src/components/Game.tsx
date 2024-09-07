@@ -57,7 +57,6 @@ const Game = ({ gameId }: { gameId: string }) => {
       <h1 className="text-4xl font-bold">Multiwordleable</h1>
       {word !== undefined ? (
         <>
-          {word}
           <form onSubmit={handleGuess} className="flex gap-2">
             <input
               type="text"
