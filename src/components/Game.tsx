@@ -1,14 +1,20 @@
 "use client";
 
 import { publishNewWord, publishScore } from "@/services/ably";
-import words from "@/words";
+import { words_en_4 } from "@/words_en_4";
+import { words_en_5 } from "@/words_en_5";
+import { words_fi_4, words_fi_5 } from "@/words_fi";
 import { useAbly, useChannel } from "ably/react";
 import { useState } from "react";
 
+const MAX_GUESSES = 5;
+
 // Handle new word
-const getNewWord = (): string => {
+const getNewWord = (dictionary: string[]): string => {
   const newWord =
-    words[Math.floor(Math.random() * words.length)].toLocaleUpperCase();
+    dictionary[
+      Math.floor(Math.random() * dictionary.length)
+    ].toLocaleUpperCase();
   return newWord;
 };
 
@@ -22,6 +28,7 @@ const Game = ({ gameId }: { gameId: string }) => {
   const [won, setWon] = useState(false);
   const [lost, setLost] = useState(false);
   const [score, setScore] = useState(0);
+  const [wordLength, setWordLength] = useState(0);
 
   useChannel(gameId, (message) => {
     if (message.data.action === "newWord") {
@@ -30,23 +37,31 @@ const Game = ({ gameId }: { gameId: string }) => {
       setWon(false);
       setLost(false);
       setWord(message.data.word);
+      setWordLength(message.data.word.length);
     }
   });
 
   // Handle guess
   const handleGuess = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (guess.length === 5) {
+    if (
+      (guess.length === 4 &&
+        (words_en_4.some((w) => w === guess) ||
+          words_fi_4.some((w) => w === guess))) ||
+      (guess.length === 5 &&
+        (words_en_5.some((w) => w === guess) ||
+          words_fi_5.some((w) => w === guess)))
+    ) {
       const newGuesses = [...guesses, guess];
       setGuesses(newGuesses);
       setGuess("");
       if (guess === word) {
-        const newScore = score + 5 - guesses.length;
+        const newScore = score + MAX_GUESSES - guesses.length;
         setScore(newScore);
 
         publishScore(gameId, ably.auth.clientId, newScore);
         setWon(true);
-      } else if (newGuesses.length >= 5) {
+      } else if (newGuesses.length >= MAX_GUESSES) {
         setLost(true);
       }
     }
@@ -57,21 +72,20 @@ const Game = ({ gameId }: { gameId: string }) => {
       <h1 className="text-4xl font-bold">Multiwordleable</h1>
       {word !== undefined ? (
         <>
-          {word}
           <form onSubmit={handleGuess} className="flex gap-2">
             <input
               type="text"
               value={guess}
               onChange={(e) => setGuess(e.target.value.toUpperCase())}
-              maxLength={5}
+              maxLength={wordLength}
               className="w-32 h-8 text-center border-2 rounded dark:text-gray-800"
-              pattern="[A-Z]{5}"
+              pattern={`[A-ZÄÖÅ]{${wordLength}}`}
             />
             <button
               type="submit"
               className="w-32 h-8 bg-blue-500 text-white rounded disabled:bg-gray-200 dark:bg-blue-700 dark:text-gray-300 disabled:text-gray-500 disabled:dark:bg-gray-800 hover:bg-blue-600 dark:hover:bg-blue-800 dark:hover:text-gray-200"
               disabled={
-                guess.length !== 5 ||
+                guess.length !== wordLength ||
                 won ||
                 lost ||
                 guesses.some((g) => g === guess)
@@ -81,14 +95,14 @@ const Game = ({ gameId }: { gameId: string }) => {
             </button>
           </form>
           <div className="flex flex-col gap-2">
-            {Array(5)
+            {Array(MAX_GUESSES)
               .fill(null)
               .map((_, index) => (
                 <div
                   key={index}
                   className="w-64 h-8 flex items-center justify-center gap-2"
                 >
-                  {(guesses[index] ?? "     ")
+                  {(guesses[index] ?? Array(wordLength).fill(" ").join(""))
                     .split("")
                     .map((letter, letterIndex) => (
                       <div
@@ -121,12 +135,35 @@ const Game = ({ gameId }: { gameId: string }) => {
       ) : (
         <p>Wait for a new game to start or request new word</p>
       )}
-      <button
-        onClick={() => publishNewWord(gameId, getNewWord())}
-        className="w-32 h-8 bg-red-300 text-gray-700 dark:bg-red-700 dark:text-gray-300 rounded hover:bg-red-400 dark:hover:bg-red-800"
-      >
-        New word
-      </button>
+      <div className="border rounded p-2">
+        New Word
+        <div className="flex flex-row gap-2">
+          <button
+            onClick={() => publishNewWord(gameId, getNewWord(words_en_4))}
+            className="w-32 h-8 bg-red-300 text-gray-700 dark:bg-red-700 dark:text-gray-300 rounded hover:bg-red-400 dark:hover:bg-red-800"
+          >
+            English 4-letter
+          </button>
+          <button
+            onClick={() => publishNewWord(gameId, getNewWord(words_en_5))}
+            className="w-32 h-8 bg-red-300 text-gray-700 dark:bg-red-700 dark:text-gray-300 rounded hover:bg-red-400 dark:hover:bg-red-800"
+          >
+            English 5-letter
+          </button>
+          <button
+            onClick={() => publishNewWord(gameId, getNewWord(words_fi_4))}
+            className="w-32 h-8 bg-red-300 text-gray-700 dark:bg-red-700 dark:text-gray-300 rounded hover:bg-red-400 dark:hover:bg-red-800"
+          >
+            Finnish 4-letter
+          </button>
+          <button
+            onClick={() => publishNewWord(gameId, getNewWord(words_fi_5))}
+            className="w-32 h-8 bg-red-300 text-gray-700 dark:bg-red-700 dark:text-gray-300 rounded hover:bg-red-400 dark:hover:bg-red-800"
+          >
+            Finnish 5-letter
+          </button>
+        </div>
+      </div>
       {word &&
         (won ? (
           <div className="bg-green-300 dark:bg-green-700 p-5 rounded">
@@ -137,7 +174,7 @@ const Game = ({ gameId }: { gameId: string }) => {
             {lost ? (
               <p>You lost!</p>
             ) : (
-              <p>You have {5 - guesses.length} guesses left</p>
+              <p>You have {MAX_GUESSES - guesses.length} guesses left</p>
             )}
           </div>
         ))}

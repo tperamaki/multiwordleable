@@ -1,4 +1,4 @@
-const words = [
+export const words_en_5 = [
   "aahed",
   "aalii",
   "aargh",
@@ -9377,6 +9377,4 @@ const words = [
   "zuppa",
   "zuzim",
   "zymes",
-];
-
-export default words;
+].map((word) => word.toLocaleUpperCase());
