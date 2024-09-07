@@ -12,13 +12,23 @@ const PlayerList = ({ gameId }: { gameId: string }) => {
   const ably = useAbly();
   usePresence(gameId);
   const { presenceData } = usePresenceListener(gameId);
-  const [playerScore, setPlayerScore] = useState<Record<string, number>>({});
+  const [playerScore, setPlayerScore] = useState<
+    Record<string, { score: number; ready: boolean }>
+  >({});
   useChannel(gameId, (message) => {
     if (message.data.action === "scored") {
       setPlayerScore((prev) => ({
         ...prev,
-        [message.data.playerName]: message.data.score,
+        [message.data.playerName]: { score: message.data.score, ready: true },
       }));
+    } else if (message.data.action === "newWord") {
+      setPlayerScore((prev) => {
+        return Object.fromEntries(
+          Object.entries(prev).map(([key, value]) => {
+            return [key, { ...value, ready: false }];
+          })
+        );
+      });
     }
   });
 
@@ -29,7 +39,7 @@ const PlayerList = ({ gameId }: { gameId: string }) => {
           (p) => !Object.keys(playerScore).some((ps) => ps === p.clientId)
         )
         .map((p) => {
-          return [p.clientId, 0];
+          return [p.clientId, { score: 0, ready: false }];
         })
     )
     .map(([key, value], index) => {
@@ -37,9 +47,15 @@ const PlayerList = ({ gameId }: { gameId: string }) => {
 
       return (
         <li key={index} className="flex items-center gap-2">
-          <span className="text-sm">{key}</span>
+          <span
+            className={
+              "text-sm" + (value.ready === true ? " text-green-500" : "")
+            }
+          >
+            {key}
+          </span>
           {isItMe && <span className="text-xs text-gray-400"> (You)</span>}
-          <span className="text-sm">{value}</span>
+          <span className="text-sm">{value.score}</span>
           {presenceData.some((p) => p.clientId === key) && (
             <span className="text-xs text-green-400">Online</span>
           )}
