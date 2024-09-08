@@ -21,6 +21,7 @@ export const publishNewWord = async (gameId: string, word: string) => {
   const channel = ably.channels.get(gameId);
   await channel.publish(gameId, {
     action: "newWord",
+    roundStartedStamp: Date.now(),
     word: word,
   });
 };
