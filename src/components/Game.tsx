@@ -5,7 +5,7 @@ import { words_en_4 } from "@/words_en_4";
 import { words_en_5 } from "@/words_en_5";
 import { words_fi_4, words_fi_5 } from "@/words_fi";
 import { useAbly, useChannel } from "ably/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const MAX_GUESSES = 5;
 const ROUND_TIME = 90000;
