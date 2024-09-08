@@ -9,6 +9,7 @@ import { useState } from "react";
 
 const MAX_GUESSES = 5;
 const ROUND_TIME = 90000;
+const POINTS_PER_X_SECOND = 10;
 
 // Handle new word
 const getNewWord = (dictionary: string[]): string => {
@@ -32,6 +33,7 @@ const Game = ({ gameId }: { gameId: string }) => {
   const [wordLength, setWordLength] = useState(0);
   const [roundStartedStamp, setRoundStartedStamp] = useState(Date.now());
   const [timeLeft, setTimeLeft] = useState(0);
+  const [lastRoundPoints, setLastRoundPoints] = useState(0);
 
   const startTimer = () => {
     const interval = setInterval(() => {
@@ -84,7 +86,12 @@ const Game = ({ gameId }: { gameId: string }) => {
       setGuesses(newGuesses);
       setGuess("");
       if (guess === word) {
-        const newScore = score + MAX_GUESSES - guesses.length;
+        const roundPoints =
+          MAX_GUESSES -
+          guesses.length +
+          Math.floor(timeLeft / POINTS_PER_X_SECOND);
+        const newScore = score + roundPoints;
+        setLastRoundPoints(roundPoints);
         setScore(newScore);
 
         publishScore(gameId, ably.auth.clientId, newScore);
@@ -202,6 +209,10 @@ const Game = ({ gameId }: { gameId: string }) => {
         (won ? (
           <div className="bg-green-300 dark:bg-green-700 p-5 rounded">
             <p>You won!</p>
+            <p>
+              You scored {lastRoundPoints} points. Your total score is now{" "}
+              {score}.
+            </p>
           </div>
         ) : (
           <div className="p-5 rounded">
