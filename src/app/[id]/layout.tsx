@@ -17,7 +17,9 @@ const GameLayout = ({
 
   return (
     <AblyProvider client={client}>
-      <ChannelProvider channelName={params.id}>{children}</ChannelProvider>
+      <ChannelProvider channelName={params.id.toLocaleLowerCase()}>
+        {children}
+      </ChannelProvider>
     </AblyProvider>
   );
 };

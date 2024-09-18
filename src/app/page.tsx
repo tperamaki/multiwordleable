@@ -11,7 +11,7 @@ export default function HomePage() {
             className="flex flex-col gap-2"
             onSubmit={(e) => {
               e.preventDefault();
-              window.location.href = `/${(document.getElementById("gameId") as HTMLInputElement).value?.toLocaleUpperCase()}`;
+              window.location.href = `/${(document.getElementById("gameId") as HTMLInputElement).value}`;
             }}
           >
             <label htmlFor="gameId">
