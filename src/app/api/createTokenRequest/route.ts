@@ -7,7 +7,8 @@ import {
   animals,
 } from "unique-names-generator";
 
-export const POST = async () => {
+export const POST = async (request: Request) => {
+  const data = await request.formData();
   const client = new Ably.Rest(process.env.ABLY_API_KEY ?? "");
 
   const randomName = uniqueNamesGenerator({
@@ -16,7 +17,7 @@ export const POST = async () => {
   });
 
   const tokenRequestData = await client.auth.createTokenRequest({
-    clientId: randomName,
+    clientId: data.get("playerName") + "_" + randomName,
   });
   return NextResponse.json(tokenRequestData);
 };
