@@ -1,8 +1,13 @@
 "use server";
 
-import Ably from "ably";
+import { Rest } from "ably";
 
-const ably = new Ably.Rest(process.env.ABLY_API_KEY ?? "");
+const ablyApiKey = process.env.ABLY_API_KEY;
+if (!ablyApiKey) {
+  throw new Error("ABLY_API_KEY is not defined in the environment variables.");
+}
+
+const ably = new Rest(ablyApiKey);
 
 export const publishScore = async (
   gameId: string,

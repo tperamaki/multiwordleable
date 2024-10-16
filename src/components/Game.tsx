@@ -5,7 +5,7 @@ import { words_en_4 } from "@/words_en_4";
 import { words_en_5 } from "@/words_en_5";
 import { words_fi_4, words_fi_5 } from "@/words_fi";
 import { useAbly, useChannel } from "ably/react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const MAX_GUESSES = 5;
 const ROUND_TIME = 90000;
@@ -24,39 +24,52 @@ const getNewWord = (dictionary: string[]): string => {
 const Game = ({ gameId }: { gameId: string }) => {
   // Wordle state
   const ably = useAbly();
-  const [word, setWord] = useState();
+  const [word, setWord] = useState<string>();
   const [guess, setGuess] = useState("");
   const [guesses, setGuesses] = useState<string[]>([]);
   const [won, setWon] = useState(false);
   const [lost, setLost] = useState(false);
   const [score, setScore] = useState(0);
   const [wordLength, setWordLength] = useState(0);
-  const [roundStartedStamp, setRoundStartedStamp] = useState(Date.now());
-  const [timeLeft, setTimeLeft] = useState(0);
+  const [roundStartedStamp, setRoundStartedStamp] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(ROUND_TIME / 1000);
   const [lastRoundPoints, setLastRoundPoints] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
 
   const startTimer = () => {
-    const interval = setInterval(() => {
-      setTimeLeft(
-        Math.max(
-          0,
-          Math.floor((roundStartedStamp - Date.now() + ROUND_TIME) / 1000)
-        )
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    intervalRef.current = setInterval(() => {
+      const remainingTime = Math.max(
+        0,
+        Math.floor((roundStartedStamp + ROUND_TIME - Date.now()) / 1000)
       );
-      if (
-        Math.floor((roundStartedStamp - Date.now() + ROUND_TIME) / 1000) < 1
-      ) {
-        setLost(true);
-        clearInterval(interval);
+      setTimeLeft(remainingTime);
+      if (remainingTime < 1) {
+        if (!won) {
+          setLost(true);
+        }
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
       }
     }, 1000);
-    return () => {
-      clearInterval(interval);
-    };
   };
 
   useChannel(gameId, (message) => {
     if (message.data.action === "newWord") {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
       setGuess("");
       setGuesses([]);
       setWon(false);
@@ -178,28 +191,28 @@ const Game = ({ gameId }: { gameId: string }) => {
           <button
             onClick={() => publishNewWord(gameId, getNewWord(words_en_4))}
             className="w-32 h-8 bg-red-300 text-gray-700 dark:bg-red-700 dark:text-gray-300 rounded hover:bg-red-400 dark:hover:bg-red-800 disabled:bg-gray-200 dark:disabled:bg-gray-800"
-            disabled={timeLeft > 0}
+            disabled={word !== undefined && timeLeft > 0}
           >
             English 4-letter
           </button>
           <button
             onClick={() => publishNewWord(gameId, getNewWord(words_en_5))}
             className="w-32 h-8 bg-red-300 text-gray-700 dark:bg-red-700 dark:text-gray-300 rounded hover:bg-red-400 dark:hover:bg-red-800 disabled:bg-gray-200 dark:disabled:bg-gray-800"
-            disabled={timeLeft > 0}
+            disabled={word !== undefined && timeLeft > 0}
           >
             English 5-letter
           </button>
           <button
             onClick={() => publishNewWord(gameId, getNewWord(words_fi_4))}
             className="w-32 h-8 bg-red-300 text-gray-700 dark:bg-red-700 dark:text-gray-300 rounded hover:bg-red-400 dark:hover:bg-red-800 disabled:bg-gray-200 dark:disabled:bg-gray-800"
-            disabled={timeLeft > 0}
+            disabled={word !== undefined && timeLeft > 0}
           >
             Finnish 4-letter
           </button>
           <button
             onClick={() => publishNewWord(gameId, getNewWord(words_fi_5))}
             className="w-32 h-8 bg-red-300 text-gray-700 dark:bg-red-700 dark:text-gray-300 rounded hover:bg-red-400 dark:hover:bg-red-800 disabled:bg-gray-200 dark:disabled:bg-gray-800"
-            disabled={timeLeft > 0}
+            disabled={word !== undefined && timeLeft > 0}
           >
             Finnish 5-letter
           </button>
