@@ -131,7 +131,7 @@ const Game = ({ gameId }: { gameId: string }) => {
       {word !== undefined ? (
         <>
           {<p>Time left: {Math.floor(timeLeft / 1000)} seconds</p>}
-          {timeLeft < 1000 ? <p className="text-green-500">{word}</p> : null}
+          {timeLeft < 1 ? <p className="text-green-500">{word}</p> : null}
           <form onSubmit={handleGuess} className="flex gap-2">
             <input
               type="text"
