@@ -8,8 +8,10 @@ import { useAbly, useChannel } from "ably/react";
 import { useState, useRef, useEffect } from "react";
 
 const MAX_GUESSES = 5;
-const ROUND_TIME = 90000;
-const POINTS_PER_X_SECOND = 10;
+const ROUND_TIME = parseInt(process.env.NEXT_PUBLIC_ROUND_TIME ?? "10000", 10);
+const BASE_POINTS = 50;
+const POINTS_PER_SECOND_LEFT = 1;
+const POINTS_PER_QUESS_LEFT = 5;
 
 // Handle new word
 const getNewWord = (dictionary: string[]): string => {
@@ -31,10 +33,10 @@ const Game = ({ gameId }: { gameId: string }) => {
   const [lost, setLost] = useState(false);
   const [score, setScore] = useState(0);
   const [wordLength, setWordLength] = useState(0);
-  const [roundStartedStamp, setRoundStartedStamp] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(ROUND_TIME / 1000);
+  const [timeLeft, setTimeLeft] = useState(ROUND_TIME);
   const [lastRoundPoints, setLastRoundPoints] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const roundStartedStampRef = useRef<number>(0);
 
   useEffect(() => {
     return () => {
@@ -44,47 +46,46 @@ const Game = ({ gameId }: { gameId: string }) => {
     };
   }, []);
 
-  const startTimer = () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-    intervalRef.current = setInterval(() => {
-      const remainingTime = Math.max(
-        0,
-        Math.floor((roundStartedStamp + ROUND_TIME - Date.now()) / 1000)
-      );
-      setTimeLeft(remainingTime);
-      if (remainingTime < 1) {
-        if (!won) {
-          setLost(true);
-        }
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-        }
-      }
-    }, 1000);
-  };
-
   useChannel(gameId, (message) => {
     if (message.data.action === "newWord") {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
+
       setGuess("");
       setGuesses([]);
       setWon(false);
       setLost(false);
       setWord(message.data.word);
       setWordLength(message.data.word.length);
-      setRoundStartedStamp(message.data.roundStartedStamp);
-      setTimeLeft(ROUND_TIME / 1000);
-      startTimer();
+      roundStartedStampRef.current = message.data.roundStartedStamp;
+      setTimeLeft(ROUND_TIME);
+
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      intervalRef.current = setInterval(() => {
+        const remainingTime = Math.max(
+          0,
+          Math.floor(roundStartedStampRef.current + ROUND_TIME - Date.now())
+        );
+        setTimeLeft(remainingTime);
+        if (remainingTime < 1) {
+          if (!won) {
+            setLost(true);
+          }
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+          }
+        }
+      }, 1000);
     }
   });
 
   // Handle guess
   const handleGuess = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     if (
       (!lost &&
         !won &&
@@ -98,11 +99,13 @@ const Game = ({ gameId }: { gameId: string }) => {
       const newGuesses = [...guesses, guess];
       setGuesses(newGuesses);
       setGuess("");
+
       if (guess === word) {
-        const roundPoints =
-          MAX_GUESSES -
-          guesses.length +
-          Math.floor(timeLeft / POINTS_PER_X_SECOND);
+        const timeBonus = Math.floor(timeLeft / 1000) * POINTS_PER_SECOND_LEFT; // 2 points per second left
+        const guessBonus =
+          (MAX_GUESSES - newGuesses.length) * POINTS_PER_QUESS_LEFT; // 10 points per remaining guess
+        const roundPoints = BASE_POINTS + timeBonus + guessBonus;
+
         const newScore = score + roundPoints;
         setLastRoundPoints(roundPoints);
         setScore(newScore);
@@ -120,8 +123,8 @@ const Game = ({ gameId }: { gameId: string }) => {
       <h1 className="text-4xl font-bold">Multiwordleable</h1>
       {word !== undefined ? (
         <>
-          {<p>Time left: {timeLeft} seconds</p>}
-          {timeLeft < 1 ? <p className="text-green-500">{word}</p> : null}
+          {<p>Time left: {Math.floor(timeLeft / 1000)} seconds</p>}
+          {timeLeft < 1000 ? <p className="text-green-500">{word}</p> : null}
           <form onSubmit={handleGuess} className="flex gap-2">
             <input
               type="text"
