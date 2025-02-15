@@ -22,11 +22,16 @@ export const publishScore = async (
   });
 };
 
-export const publishNewWord = async (gameId: string, word: string) => {
+export const publishNewWord = async (
+  gameId: string,
+  word: string,
+  language: "fi" | "en"
+) => {
   const channel = ably.channels.get(gameId);
   await channel.publish(gameId, {
     action: "newWord",
     roundStartedStamp: Date.now(),
     word: word,
+    language: language,
   });
 };

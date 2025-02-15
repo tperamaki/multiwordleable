@@ -34,6 +34,7 @@ const Game = ({ gameId }: { gameId: string }) => {
   // Wordle state
   const ably = useAbly();
   const [word, setWord] = useState<string>();
+  const [language, setLanguage] = useState<"en" | "fi">("en");
   const [guess, setGuess] = useState("");
   const [guesses, setGuesses] = useState<string[]>([]);
   const [won, setWon] = useState(false);
@@ -64,6 +65,7 @@ const Game = ({ gameId }: { gameId: string }) => {
       setWon(false);
       setLost(false);
       setWord(message.data.word);
+      setLanguage(message.data.language);
       setWordLength(message.data.word.length);
       roundStartedStampRef.current = message.data.roundStartedStamp;
       setTimeLeft(ROUND_TIME);
@@ -97,11 +99,11 @@ const Game = ({ gameId }: { gameId: string }) => {
       (!lost &&
         !won &&
         guess.length === 4 &&
-        (words_en_4.some((w) => w === guess) ||
-          words_fi_4.some((w) => w === guess))) ||
+        ((language === "en" && words_en_4.some((w) => w === guess)) ||
+          (language === "fi" && words_fi_4.some((w) => w === guess)))) ||
       (guess.length === 5 &&
-        (words_en_5.some((w) => w === guess) ||
-          words_fi_5.some((w) => w === guess)))
+        ((language === "en" && words_en_5.some((w) => w === guess)) ||
+          (language === "fi" && words_fi_5.some((w) => w === guess))))
     ) {
       const newGuesses = [...guesses, guess];
       setGuesses(newGuesses);
@@ -199,29 +201,29 @@ const Game = ({ gameId }: { gameId: string }) => {
         New Word
         <div className="flex flex-row gap-2">
           <button
-            onClick={() => publishNewWord(gameId, getNewWord(words_en_4))}
-            className="w-32 h-8 bg-red-300 text-gray-700 dark:bg-red-700 dark:text-gray-300 rounded hover:bg-red-400 dark:hover:bg-red-800 disabled:bg-gray-200 dark:disabled:bg-gray-800"
+            onClick={() => publishNewWord(gameId, getNewWord(words_en_4), "en")}
+            className={`w-32 h-8 bg-red-300 text-gray-700 dark:bg-red-700 dark:text-gray-300 rounded hover:bg-red-400 dark:hover:bg-red-800 ${language === "en" && wordLength === 4 ? "disabled:bg-green-200 dark:disabled:bg-green-800" : "disabled:bg-gray-200 dark:disabled:bg-gray-800"}`}
             disabled={word !== undefined && timeLeft > 0}
           >
             English 4-letter
           </button>
           <button
-            onClick={() => publishNewWord(gameId, getNewWord(words_en_5))}
-            className="w-32 h-8 bg-red-300 text-gray-700 dark:bg-red-700 dark:text-gray-300 rounded hover:bg-red-400 dark:hover:bg-red-800 disabled:bg-gray-200 dark:disabled:bg-gray-800"
+            onClick={() => publishNewWord(gameId, getNewWord(words_en_5), "en")}
+            className={`w-32 h-8 bg-red-300 text-gray-700 dark:bg-red-700 dark:text-gray-300 rounded hover:bg-red-400 dark:hover:bg-red-80 ${language === "en" && wordLength === 5 ? "disabled:bg-green-200 dark:disabled:bg-green-800" : "disabled:bg-gray-200 dark:disabled:bg-gray-800"}`}
             disabled={word !== undefined && timeLeft > 0}
           >
             English 5-letter
           </button>
           <button
-            onClick={() => publishNewWord(gameId, getNewWord(words_fi_4))}
-            className="w-32 h-8 bg-red-300 text-gray-700 dark:bg-red-700 dark:text-gray-300 rounded hover:bg-red-400 dark:hover:bg-red-800 disabled:bg-gray-200 dark:disabled:bg-gray-800"
+            onClick={() => publishNewWord(gameId, getNewWord(words_fi_4), "fi")}
+            className={`w-32 h-8 bg-red-300 text-gray-700 dark:bg-red-700 dark:text-gray-300 rounded hover:bg-red-400 dark:hover:bg-red-800 ${language === "fi" && wordLength === 4 ? "disabled:bg-green-200 dark:disabled:bg-green-800" : "disabled:bg-gray-200 dark:disabled:bg-gray-800"}`}
             disabled={word !== undefined && timeLeft > 0}
           >
             Finnish 4-letter
           </button>
           <button
-            onClick={() => publishNewWord(gameId, getNewWord(words_fi_5))}
-            className="w-32 h-8 bg-red-300 text-gray-700 dark:bg-red-700 dark:text-gray-300 rounded hover:bg-red-400 dark:hover:bg-red-800 disabled:bg-gray-200 dark:disabled:bg-gray-800"
+            onClick={() => publishNewWord(gameId, getNewWord(words_fi_5), "fi")}
+            className={`w-32 h-8 bg-red-300 text-gray-700 dark:bg-red-700 dark:text-gray-300 rounded hover:bg-red-400 dark:hover:bg-red-800 ${language === "fi" && wordLength === 5 ? "disabled:bg-green-200 dark:disabled:bg-green-800" : "disabled:bg-gray-200 dark:disabled:bg-gray-800"}`}
             disabled={word !== undefined && timeLeft > 0}
           >
             Finnish 5-letter
