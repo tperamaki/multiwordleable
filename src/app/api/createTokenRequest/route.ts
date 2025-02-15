@@ -17,7 +17,7 @@ export const POST = async (request: Request) => {
   });
 
   const tokenRequestData = await client.auth.createTokenRequest({
-    clientId: data.get("playerName") + "_" + randomName,
+    clientId: `${data.get("playerName")} (${randomName})`,
   });
   return NextResponse.json(tokenRequestData);
 };
