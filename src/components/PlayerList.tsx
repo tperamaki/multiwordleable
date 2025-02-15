@@ -8,6 +8,17 @@ import {
 } from "ably/react";
 import { useState } from "react";
 
+const BASE_POINTS = parseInt(process.env.NEXT_PUBLIC_BASE_POINTS ?? "50", 10);
+const POINTS_PER_SECOND_LEFT = parseInt(
+  process.env.NEXT_PUBLIC_POINTS_PER_SECOND_LEFT ?? "1",
+  10
+);
+1;
+const POINTS_PER_QUESS_LEFT = parseInt(
+  process.env.NEXT_PUBLIC_POINTS_PER_QUESS_LEFT ?? "5",
+  10
+);
+
 const PlayerList = ({ gameId }: { gameId: string }) => {
   const ably = useAbly();
   usePresence(gameId);
@@ -65,6 +76,17 @@ const PlayerList = ({ gameId }: { gameId: string }) => {
 
   return (
     <div className="flex flex-col gap-2">
+      <details className="text-xs">
+        <summary>Scoring</summary>
+        <div className="border rounded p-2">
+          <p>Base points: {BASE_POINTS} points per correct guess</p>
+          <p>
+            Time bonus: {POINTS_PER_SECOND_LEFT} points per second left on the
+            clock
+          </p>
+          <p>Guess bonus: {POINTS_PER_QUESS_LEFT} points per remaining guess</p>
+        </div>
+      </details>
       <h2>Players</h2>
       <ul>{combinedPlayerList}</ul>
     </div>

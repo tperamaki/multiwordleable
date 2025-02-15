@@ -9,9 +9,16 @@ import { useState, useRef, useEffect } from "react";
 
 const MAX_GUESSES = 5;
 const ROUND_TIME = parseInt(process.env.NEXT_PUBLIC_ROUND_TIME ?? "10000", 10);
-const BASE_POINTS = 50;
-const POINTS_PER_SECOND_LEFT = 1;
-const POINTS_PER_QUESS_LEFT = 5;
+const BASE_POINTS = parseInt(process.env.NEXT_PUBLIC_BASE_POINTS ?? "50", 10);
+const POINTS_PER_SECOND_LEFT = parseInt(
+  process.env.NEXT_PUBLIC_POINTS_PER_SECOND_LEFT ?? "1",
+  10
+);
+1;
+const POINTS_PER_QUESS_LEFT = parseInt(
+  process.env.NEXT_PUBLIC_POINTS_PER_QUESS_LEFT ?? "5",
+  10
+);
 
 // Handle new word
 const getNewWord = (dictionary: string[]): string => {
