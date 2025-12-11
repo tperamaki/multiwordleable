@@ -21,7 +21,7 @@ export default function HomePage() {
               id="gameId"
               type="text"
               placeholder="Code"
-              className="w-32 h-8 p-2 border-2 rounded dark:text-gray-800"
+              className="w-32 h-8 p-2 border-2 rounded"
               required
             />
             <button
