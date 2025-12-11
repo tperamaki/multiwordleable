@@ -140,7 +140,7 @@ const Game = ({ gameId }: { gameId: string }) => {
               value={guess}
               onChange={(e) => setGuess(e.target.value.toUpperCase())}
               maxLength={wordLength}
-              className="w-32 h-8 text-center border-2 rounded dark:text-gray-800"
+              className="w-32 h-8 text-center border-2 rounded"
               pattern={`[A-ZÄÖÅ]{${wordLength}}`}
             />
             <button

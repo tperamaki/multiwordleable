@@ -2,16 +2,17 @@
 
 import * as Ably from "ably";
 import { AblyProvider, ChannelProvider } from "ably/react";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 
 const GameLayout = ({
   params,
   children,
 }: Readonly<{
-  params: { id: string };
+  params: Promise<{ id: string }>;
   children: React.ReactNode;
 }>) => {
   const [client, setClient] = useState<Ably.Realtime | null>(null);
+  const { id } = use(params);
 
   useEffect(() => {
     let name = localStorage.getItem("playerName");
@@ -31,7 +32,7 @@ const GameLayout = ({
   return (
     client && (
       <AblyProvider client={client}>
-        <ChannelProvider channelName={params.id.toLocaleLowerCase()}>
+        <ChannelProvider channelName={id.toLocaleLowerCase()}>
           {children}
         </ChannelProvider>
       </AblyProvider>
